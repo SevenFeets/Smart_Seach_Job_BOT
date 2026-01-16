@@ -4,12 +4,12 @@ Automated LinkedIn job search and application bot built with Python and Playwrig
 
 ## ✨ Features
 
-- ** Job Search**: Search LinkedIn jobs by keywords, experience level, location, and date posted
-- ** Database Storage**: SQLite database to track jobs and prevent duplicate applications
-- ** Auto-Apply**: Automatically apply to Easy Apply jobs
-- ** AI Cover Letters**: Generate personalized cover letters using free LLMs (Ollama, Groq, etc.)
-- ** Scheduling**: Run hourly within specified hours (8 AM - 6 PM)
-- ** GitHub Actions**: Cloud-based scheduling with GitHub Actions
+-  Job Search**: Search LinkedIn jobs by keywords, experience level, location, and date posted
+-  Database Storage**: SQLite database to track jobs and prevent duplicate applications
+-  Auto-Apply**: Automatically apply to Easy Apply jobs
+-  AI Cover Letters**: Generate personalized cover letters using free LLMs (Ollama, Groq, etc.)
+-  Scheduling**: Run hourly within specified hours (8 AM - 6 PM)
+-  GitHub Actions**: Cloud-based scheduling with GitHub Actions
 
 ## 📁 Project Structure
 
