@@ -96,13 +96,13 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             case "${{ github.event.inputs.mode }}" in
               "search")
-                python main.py search --pages 2 --easy-apply
+                python main.py search --pages 3 --easy-apply
                 ;;
               "apply")
-                python main.py apply --max 5
+                python main.py apply --max 50
                 ;;
               "full")
-                python main.py run --max 5 --easy-apply
+                python main.py run --max 50 --easy-apply
                 ;;
             esac
           else
