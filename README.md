@@ -191,7 +191,11 @@ LLM_PROVIDER=google
 GOOGLE_AI_API_KEY=...
 ```
 
-##  GitHub Actions Setup
+## 📅 GitHub Actions Setup
+
+> 📚 **Full Guide:** See [`docs/GITHUB_ACTIONS_SETUP.md`](docs/GITHUB_ACTIONS_SETUP.md) for complete step-by-step instructions.
+> 
+> 🚀 **Quick Start:** See [`GITHUB_ACTIONS_QUICKSTART.md`](GITHUB_ACTIONS_QUICKSTART.md) for 5-minute setup.
 
 ### 1. Add Repository Secrets
 

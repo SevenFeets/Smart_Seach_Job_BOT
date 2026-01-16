@@ -51,7 +51,7 @@ class JobApplier:
             if already_applied:
                 text = await already_applied.inner_text()
                 if "applied" in text.lower():
-                    console.print("[yellow]⚠️ Already applied to this job[/yellow]")
+                    console.print("[yellow]Already applied to this job[/yellow]")
                     return False
             
             # Find Easy Apply button
@@ -63,13 +63,13 @@ class JobApplier:
             )
             
             if not easy_apply_btn:
-                console.print("[yellow]⚠️ No Easy Apply button found[/yellow]")
+                console.print("[yellow]No Easy Apply button found[/yellow]")
                 return False
             
             # Check if it's actually Easy Apply
             btn_text = await easy_apply_btn.inner_text()
             if "easy apply" not in btn_text.lower():
-                console.print("[yellow]⚠️ Not an Easy Apply position[/yellow]")
+                console.print("[yellow]Not an Easy Apply position[/yellow]")
                 return False
             
             # Click Easy Apply
@@ -102,7 +102,7 @@ class JobApplier:
             if success_indicator:
                 text = await success_indicator.inner_text()
                 if "application sent" in text.lower() or "applied" in text.lower():
-                    console.print("[green]✓ Application submitted successfully![/green]")
+                    console.print("[green]Application submitted successfully![/green]")
                     return True
             
             # Check for submit button
@@ -119,7 +119,7 @@ class JobApplier:
                     # Final submit
                     await submit_btn.click()
                     await self.page.wait_for_timeout(3000)
-                    console.print("[green]✓ Application submitted![/green]")
+                    console.print("[green]Application submitted![/green]")
                     return True
                     
                 elif "next" in btn_text.lower() or "continue" in btn_text.lower():
@@ -165,7 +165,7 @@ class JobApplier:
                 error_text = await error_elem.inner_text()
                 console.print(f"[red]Form error: {error_text}[/red]")
         
-        console.print("[yellow]⚠️ Could not complete application (max steps reached)[/yellow]")
+        console.print("[yellow]Could not complete application (max steps reached)[/yellow]")
         return False
     
     async def _fill_application_step(self, job: Job):
@@ -295,7 +295,7 @@ class JobApplier:
             console.print("[yellow]No jobs to apply to.[/yellow]")
             return self.stats
         
-        console.print(f"\n[bold cyan]📝 Starting applications ({len(jobs)} jobs)[/bold cyan]")
+        console.print(f"\n[bold cyan]Starting applications ({len(jobs)} jobs)[/bold cyan]")
         
         async with async_playwright() as playwright:
             await self.auth.start_browser(playwright)
@@ -361,7 +361,7 @@ class JobApplier:
                 await self.auth.close()
         
         # Print summary
-        console.print("\n[bold green]📊 Application Summary:[/bold green]")
+        console.print("\n[bold green]Application Summary:[/bold green]")
         console.print(f"  Attempted: {self.stats['attempted']}")
         console.print(f"  Successful: {self.stats['successful']}")
         console.print(f"  Failed: {self.stats['failed']}")

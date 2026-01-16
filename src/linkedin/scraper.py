@@ -304,7 +304,7 @@ class LinkedInScraper:
             
             try:
                 for keyword in keywords:
-                    console.print(f"\n[bold cyan]🔍 Searching for: {keyword}[/bold cyan]")
+                    console.print(f"\n[bold cyan]Searching for: {keyword}[/bold cyan]")
                     
                     jobs = await self.search_jobs(
                         keywords=keyword,
@@ -315,7 +315,7 @@ class LinkedInScraper:
                     # Save to database
                     added = self.repository.add_jobs_batch(jobs)
                     console.print(
-                        f"[green]✓ Found {len(jobs)} jobs, "
+                        f"[green]Found {len(jobs)} jobs, "
                         f"{len(added)} new jobs added to database[/green]"
                     )
                     
@@ -337,7 +337,7 @@ class LinkedInScraper:
         
         # Print summary
         stats = self.repository.get_application_stats()
-        console.print("\n[bold green]📊 Database Stats:[/bold green]")
+        console.print("\n[bold green]Database Stats:[/bold green]")
         console.print(f"  Total jobs in database: {stats['total_jobs']}")
         console.print(f"  Total applications: {stats['total_applications']}")
         

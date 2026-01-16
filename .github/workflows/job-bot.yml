@@ -1,8 +1,9 @@
 name: LinkedIn Job Bot
 
 on:
-  # Run every hour from 8 AM to 6 PM UTC (adjust timezone as needed)
+  # Run every hour from 8 AM to 8 PM UTC, plus 2 AM UTC
   schedule:
+    - cron: '0 2 * * *'   # 02:00 UTC (middle of night)
     - cron: '0 8 * * *'   # 08:00 UTC
     - cron: '0 9 * * *'   # 09:00 UTC
     - cron: '0 10 * * *'  # 10:00 UTC
@@ -14,6 +15,9 @@ on:
     - cron: '0 16 * * *'  # 16:00 UTC
     - cron: '0 17 * * *'  # 17:00 UTC
     - cron: '0 18 * * *'  # 18:00 UTC
+    - cron: '0 19 * * *'  # 19:00 UTC
+    - cron: '0 20 * * *'  # 20:00 UTC
+  
   
   # Allow manual trigger
   workflow_dispatch:
@@ -87,7 +91,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           HEADLESS: 'true'
           SCHEDULER_START_HOUR: '8'
-          SCHEDULER_END_HOUR: '18'
+          SCHEDULER_END_HOUR: '20'
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             case "${{ github.event.inputs.mode }}" in

@@ -90,7 +90,7 @@ class LinkedInAuthenticator:
             
             # Check for security challenges
             if "checkpoint" in page.url or "challenge" in page.url:
-                console.print("[yellow]⚠️ Security challenge detected![/yellow]")
+                console.print("[yellow]Security challenge detected![/yellow]")
                 console.print("[yellow]Please complete the verification manually...[/yellow]")
                 
                 # Wait for manual verification (up to 2 minutes)
@@ -102,12 +102,12 @@ class LinkedInAuthenticator:
             
             # Verify login success
             if await self.is_logged_in(page):
-                console.print("[green]✓ Successfully logged in to LinkedIn![/green]")
+                console.print("[green]Successfully logged in to LinkedIn![/green]")
                 # Save session
                 await self.save_session()
                 return True
             else:
-                console.print("[red]✗ Login failed. Please check your credentials.[/red]")
+                console.print("[red]Login failed. Please check your credentials.[/red]")
                 return False
                 
         except Exception as e:
@@ -128,7 +128,7 @@ class LinkedInAuthenticator:
         self.page = await self.context.new_page()
         
         if await self.is_logged_in(self.page):
-            console.print("[green]✓ Already logged in.[/green]")
+            console.print("[green]Already logged in.[/green]")
             return self.page
         
         # Need to login
