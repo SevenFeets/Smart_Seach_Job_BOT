@@ -2,24 +2,24 @@ name: Bootstrap LinkedIn Session
 
 on:
   workflow_dispatch:
-    inputs:
-      session_base64:
-        description: 'Base64 encoded content of linkedin_session.json (use scripts/upload_session_to_github.py to get this)'
-        required: true
-        type: string
 
 jobs:
   upload-session:
     runs-on: ubuntu-latest
     steps:
-      - name: Decode and create session file
+      - name: Create session file from secret
         run: |
           mkdir -p browser_data
-          echo "${{ github.event.inputs.session_base64 }}" | tr -d '\n' | base64 -d > browser_data/linkedin_session.json
+          echo '${{ secrets.LINKEDIN_SESSION_JSON }}' > browser_data/linkedin_session.json
       
       - name: Validate session file
         run: |
-          python3 -m json.tool browser_data/linkedin_session.json > /dev/null && echo "✅ Session file is valid JSON" || echo "❌ Invalid JSON"
+          if python3 -m json.tool browser_data/linkedin_session.json > /dev/null 2>&1; then
+            echo "[OK] Session file is valid JSON"
+          else
+            echo "[ERROR] Invalid JSON"
+            exit 1
+          fi
       
       - name: Upload session artifact
         uses: actions/upload-artifact@v4
