@@ -4,12 +4,12 @@ Automated LinkedIn job search and application bot built with Python and Playwrig
 
 ## ✨ Features
 
-- **🔍 Job Search**: Search LinkedIn jobs by keywords, experience level, location, and date posted
-- **💾 Database Storage**: SQLite database to track jobs and prevent duplicate applications
-- **📝 Auto-Apply**: Automatically apply to Easy Apply jobs
-- **✉️ AI Cover Letters**: Generate personalized cover letters using free LLMs (Ollama, Groq, etc.)
-- **⏰ Scheduling**: Run hourly within specified hours (8 AM - 6 PM)
-- **🔄 GitHub Actions**: Cloud-based scheduling with GitHub Actions
+- ** Job Search**: Search LinkedIn jobs by keywords, experience level, location, and date posted
+- ** Database Storage**: SQLite database to track jobs and prevent duplicate applications
+- ** Auto-Apply**: Automatically apply to Easy Apply jobs
+- ** AI Cover Letters**: Generate personalized cover letters using free LLMs (Ollama, Groq, etc.)
+- ** Scheduling**: Run hourly within specified hours (8 AM - 6 PM)
+- ** GitHub Actions**: Cloud-based scheduling with GitHub Actions
 
 ## 📁 Project Structure
 
@@ -44,7 +44,7 @@ linkedin-job-bot/
 └── README.md
 ```
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Clone and Install
 
@@ -122,7 +122,7 @@ python main.py stats
 python main.py jobs
 ```
 
-## ⚙️ Configuration Options
+##  Configuration Options
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -137,7 +137,7 @@ python main.py jobs
 | `LLM_PROVIDER` | ollama, groq, openai, google | ollama |
 | `HEADLESS` | Run browser headlessly | true |
 
-## 🤖 AI Cover Letter Generation
+##  AI Cover Letter Generation
 
 ### Option 1: Ollama (Free, Local or Remote)
 
@@ -191,7 +191,7 @@ LLM_PROVIDER=google
 GOOGLE_AI_API_KEY=...
 ```
 
-## 📅 GitHub Actions Setup
+##  GitHub Actions Setup
 
 ### 1. Add Repository Secrets
 
@@ -223,7 +223,7 @@ schedule:
   - cron: '0 8-18 * * 1-5'  # 8 AM to 6 PM, weekdays only
 ```
 
-## 📋 CLI Commands
+##  CLI Commands
 
 ```bash
 # Search for jobs
@@ -262,7 +262,7 @@ python main.py resumes [OPTIONS]
   --test, -t        Test which resume would be selected
 ```
 
-## ⚠️ Important Notes
+##  Important Notes
 
 1. **LinkedIn ToS**: Automated tools may violate LinkedIn's Terms of Service. Use responsibly.
 
@@ -291,7 +291,7 @@ python main.py resumes [OPTIONS]
 - External applications are skipped
 - Check error messages in output
 
-## 📄 License
+##  License
 
 MIT License - Use at your own risk.
 
@@ -303,4 +303,4 @@ MIT License - Use at your own risk.
 
 ---
 
-**⚠️ Disclaimer**: This tool is for educational purposes. Automated job applications may violate LinkedIn's Terms of Service. Use responsibly and at your own risk.
+** Disclaimer**: This tool is for educational purposes. Automated job applications may violate LinkedIn's Terms of Service. Use responsibly and at your own risk.
