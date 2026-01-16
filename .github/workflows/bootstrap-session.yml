@@ -15,7 +15,7 @@ jobs:
       - name: Decode and create session file
         run: |
           mkdir -p browser_data
-          echo "${{ github.event.inputs.session_base64 }}" | base64 -d > browser_data/linkedin_session.json
+          echo "${{ github.event.inputs.session_base64 }}" | tr -d '\n' | base64 -d > browser_data/linkedin_session.json
       
       - name: Validate session file
         run: |
