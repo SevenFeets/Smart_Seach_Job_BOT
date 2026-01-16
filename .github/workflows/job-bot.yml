@@ -114,17 +114,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linkedin-session
-          path: browser_data/linkedin_session.json
+          path: browser_data/
           retention-days: 7
         if: always()
+        continue-on-error: true
       
       - name: Upload database artifact
         uses: actions/upload-artifact@v4
         with:
           name: jobs-database
-          path: data/jobs.db
+          path: data/
           retention-days: 30
         if: always()
+        continue-on-error: true
       
       - name: Print statistics
         run: python main.py stats
