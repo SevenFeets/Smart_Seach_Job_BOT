@@ -76,6 +76,19 @@ jobs:
           path: data/
         continue-on-error: true
       
+      - name: Load session from secret (if no artifact)
+        run: |
+          if [ ! -f "browser_data/linkedin_session.json" ]; then
+            if [ -n "${{ secrets.LINKEDIN_SESSION_JSON }}" ]; then
+              echo '${{ secrets.LINKEDIN_SESSION_JSON }}' > browser_data/linkedin_session.json
+              echo "Session loaded from secret"
+            else
+              echo "No session found (will login fresh)"
+            fi
+          else
+            echo "Session loaded from artifact"
+          fi
+      
       - name: Run Job Bot
         env:
           LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
