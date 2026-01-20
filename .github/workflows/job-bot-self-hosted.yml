@@ -1,10 +1,13 @@
 # Alternative workflow for self-hosted runners (better for browser automation)
+# DISABLED: This workflow requires a self-hosted runner. 
+# If you set up a self-hosted runner, uncomment the schedule below.
 name: LinkedIn Job Bot (Self-Hosted)
 
 on:
-  schedule:
-    # Run every hour from 8 AM to 6 PM (your local timezone)
-    - cron: '0 8-18 * * 1-5'  # Weekdays only
+  # DISABLED - Uncomment if you have a self-hosted runner configured
+  # schedule:
+  #   # Run every hour from 8 AM to 6 PM (your local timezone)
+  #   - cron: '0 8-18 * * 1-5'  # Weekdays only
   
   workflow_dispatch:
     inputs:
