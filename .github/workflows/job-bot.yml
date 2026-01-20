@@ -68,6 +68,7 @@ jobs:
           name: linkedin-session
           path: browser_data/
         continue-on-error: true
+        id: download-session
       
       - name: Download database (if exists)
         uses: actions/download-artifact@v4
@@ -75,6 +76,20 @@ jobs:
           name: jobs-database
           path: data/
         continue-on-error: true
+        id: download-db
+      
+      - name: Artifact download status
+        run: |
+          if [ "${{ steps.download-session.outcome }}" != "success" ]; then
+            echo "::notice::Session artifact not found (normal for first run or if session expired)"
+          else
+            echo "Session artifact loaded successfully"
+          fi
+          if [ "${{ steps.download-db.outcome }}" != "success" ]; then
+            echo "::notice::Database artifact not found (normal for first run)"
+          else
+            echo "Database artifact loaded successfully"
+          fi
       
       - name: Load session from secret (if no artifact)
         env:
