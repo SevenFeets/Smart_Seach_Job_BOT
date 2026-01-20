@@ -292,7 +292,7 @@ def jobs(
             job.title[:40] + "..." if len(job.title) > 40 else job.title,
             job.company[:25] + "..." if len(job.company) > 25 else job.company,
             job.location[:20] if job.location else "",
-            "✓" if job.is_easy_apply else "",
+            "Yes" if job.is_easy_apply else "No",
             job.posted_date or ""
         )
     
@@ -354,10 +354,11 @@ def github_action():
     async def github_action_job():
         # Search for jobs
         scraper = LinkedInScraper()
+        # Search more pages and include non-Easy Apply jobs for better coverage
         await scraper.run(
             keywords=settings.keywords_list,
-            max_pages_per_keyword=2,
-            easy_apply_only=True
+            max_pages_per_keyword=5,  # Increased from 2 to 5 (125 jobs per keyword)
+            easy_apply_only=False  # Search all jobs, not just Easy Apply
         )
         
         # Apply if enabled

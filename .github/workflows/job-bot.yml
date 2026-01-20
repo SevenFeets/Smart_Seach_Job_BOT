@@ -145,7 +145,7 @@ jobs:
         with:
           name: linkedin-session
           path: browser_data/
-          retention-days: 7
+          retention-days: 14  # Increased from 7 to 14 days
         if: always()
         continue-on-error: true
       
@@ -154,7 +154,7 @@ jobs:
         with:
           name: jobs-database
           path: data/
-          retention-days: 30
+          retention-days: 90  # Increased from 30 to 90 days
         if: always()
         continue-on-error: true
       

@@ -108,36 +108,75 @@ class LinkedInScraper:
         jobs = []
         
         try:
-            await self.page.goto(url, wait_until="domcontentloaded")
-            await self.page.wait_for_timeout(3000)
+            await self.page.goto(url, wait_until="networkidle", timeout=60000)
+            await self.page.wait_for_timeout(5000)  # Increased wait time
             
-            # Wait for job cards to load
-            try:
-                await self.page.wait_for_selector(
-                    ".jobs-search-results__list-item, .job-card-container",
-                    timeout=10000
-                )
-            except:
+            # Wait for job cards to load - try multiple selectors
+            selectors = [
+                ".jobs-search-results__list-item",
+                ".job-card-container",
+                "li[data-occludable-job-id]",
+                ".scaffold-layout__list-container li",
+                "ul.jobs-search-results__list > li"
+            ]
+            
+            job_cards_loaded = False
+            for selector in selectors:
+                try:
+                    await self.page.wait_for_selector(selector, timeout=10000)
+                    job_cards_loaded = True
+                    break
+                except:
+                    continue
+            
+            if not job_cards_loaded:
                 console.print("[yellow]No job listings found on this page.[/yellow]")
                 return jobs
             
-            # Scroll to load more jobs
+            # Scroll more aggressively to load all jobs
             await self._scroll_job_list()
             
-            # Get all job cards
-            job_cards = await self.page.query_selector_all(
-                ".jobs-search-results__list-item, .job-card-container"
-            )
+            # Wait a bit more for dynamic content
+            await self.page.wait_for_timeout(2000)
             
-            console.print(f"[cyan]Found {len(job_cards)} job cards[/cyan]")
+            # Try multiple selectors to get all job cards
+            job_cards = []
+            for selector in selectors:
+                cards = await self.page.query_selector_all(selector)
+                if cards:
+                    job_cards = cards
+                    break
             
+            # Remove duplicates by job ID
+            seen_ids = set()
+            unique_cards = []
             for card in job_cards:
+                try:
+                    job_id = await card.get_attribute("data-job-id")
+                    if not job_id:
+                        # Try to extract from link
+                        link = await card.query_selector("a[href*='/jobs/view/']")
+                        if link:
+                            href = await link.get_attribute("href")
+                            match = re.search(r"/jobs/view/(\d+)", href or "")
+                            if match:
+                                job_id = match.group(1)
+                    
+                    if job_id and job_id not in seen_ids:
+                        seen_ids.add(job_id)
+                        unique_cards.append(card)
+                except:
+                    unique_cards.append(card)  # Include if we can't get ID
+            
+            console.print(f"[cyan]Found {len(unique_cards)} unique job cards[/cyan]")
+            
+            for card in unique_cards:
                 try:
                     job_data = await self._extract_job_from_card(card, search_keyword)
                     if job_data:
                         jobs.append(job_data)
                 except Exception as e:
-                    console.print(f"[red]Error extracting job: {e}[/red]")
+                    console.print(f"[dim red]Error extracting job: {e}[/dim red]")
                     continue
             
         except Exception as e:
@@ -147,11 +186,36 @@ class LinkedInScraper:
     
     async def _scroll_job_list(self):
         """Scroll the job list to load more results."""
-        job_list = await self.page.query_selector(".jobs-search-results-list")
+        # Try multiple selectors for the job list container
+        selectors = [
+            ".jobs-search-results-list",
+            ".scaffold-layout__list-container",
+            "ul.jobs-search-results__list",
+            "main[role='main']"
+        ]
+        
+        job_list = None
+        for selector in selectors:
+            job_list = await self.page.query_selector(selector)
+            if job_list:
+                break
+        
         if job_list:
-            for _ in range(3):
-                await job_list.evaluate("el => el.scrollTop += 500")
-                await self.page.wait_for_timeout(500)
+            # Scroll more times to ensure all jobs load
+            for i in range(10):
+                await job_list.evaluate("el => el.scrollTop += 1000")
+                await self.page.wait_for_timeout(800)
+                # Check if we've reached the bottom
+                scroll_height = await job_list.evaluate("el => el.scrollHeight")
+                scroll_top = await job_list.evaluate("el => el.scrollTop")
+                client_height = await job_list.evaluate("el => el.clientHeight")
+                if scroll_top + client_height >= scroll_height - 100:
+                    break
+        else:
+            # Fallback: scroll the page itself
+            for _ in range(5):
+                await self.page.evaluate("window.scrollBy(0, 1000)")
+                await self.page.wait_for_timeout(800)
     
     async def _extract_job_from_card(
         self,
@@ -296,6 +360,9 @@ class LinkedInScraper:
         keywords = keywords or self.settings.keywords_list
         all_jobs = []
         
+        total_found = 0
+        total_added = 0
+        
         async with async_playwright() as playwright:
             # Start browser and authenticate
             await self.auth.start_browser(playwright)
@@ -303,8 +370,10 @@ class LinkedInScraper:
             self.page = await self.auth.ensure_logged_in()
             
             try:
+                
                 for keyword in keywords:
-                    console.print(f"\n[bold cyan]Searching for: {keyword}[/bold cyan]")
+                    console.print(f"\n[bold cyan]Searching for: '{keyword}'[/bold cyan]")
+                    console.print(f"[dim]Pages: {max_pages_per_keyword}, Easy Apply Only: {easy_apply_only}[/dim]")
                     
                     jobs = await self.search_jobs(
                         keywords=keyword,
@@ -314,10 +383,17 @@ class LinkedInScraper:
                     
                     # Save to database
                     added = self.repository.add_jobs_batch(jobs)
+                    total_found += len(jobs)
+                    total_added += len(added)
+                    
                     console.print(
-                        f"[green]Found {len(jobs)} jobs, "
+                        f"[green]Keyword '{keyword}': Found {len(jobs)} jobs, "
                         f"{len(added)} new jobs added to database[/green]"
                     )
+                    
+                    if len(jobs) == 0:
+                        console.print(f"[yellow]Warning: No jobs found for '{keyword}'. "
+                                    f"Try adjusting search parameters.[/yellow]")
                     
                     # Optionally get detailed info for new jobs
                     if get_details and added:
@@ -337,8 +413,10 @@ class LinkedInScraper:
         
         # Print summary
         stats = self.repository.get_application_stats()
-        console.print("\n[bold green]Database Stats:[/bold green]")
-        console.print(f"  Total jobs in database: {stats['total_jobs']}")
-        console.print(f"  Total applications: {stats['total_applications']}")
+        console.print("\n[bold green]=== Search Summary ===[/bold green]")
+        console.print(f"[cyan]Total jobs found this run:[/cyan] {total_found}")
+        console.print(f"[cyan]New jobs added to database:[/cyan] {total_added}")
+        console.print(f"[cyan]Total jobs in database:[/cyan] {stats['total_jobs']}")
+        console.print(f"[cyan]Total applications:[/cyan] {stats['total_applications']}")
         
         return all_jobs
