@@ -363,53 +363,81 @@ class LinkedInScraper:
         total_found = 0
         total_added = 0
         
-        async with async_playwright() as playwright:
-            # Start browser and authenticate
-            await self.auth.start_browser(playwright)
-            await self.auth.get_context()
-            self.page = await self.auth.ensure_logged_in()
-            
+        max_retries = 2
+        retry_count = 0
+        
+        while retry_count <= max_retries:
             try:
-                
-                for keyword in keywords:
-                    console.print(f"\n[bold cyan]Searching for: '{keyword}'[/bold cyan]")
-                    console.print(f"[dim]Pages: {max_pages_per_keyword}, Easy Apply Only: {easy_apply_only}[/dim]")
+                async with async_playwright() as playwright:
+                    # Start browser and authenticate
+                    await self.auth.start_browser(playwright)
+                    await self.auth.get_context()
                     
-                    jobs = await self.search_jobs(
-                        keywords=keyword,
-                        max_pages=max_pages_per_keyword,
-                        easy_apply_only=easy_apply_only
-                    )
+                    try:
+                        self.page = await self.auth.ensure_logged_in()
+                    except RuntimeError as e:
+                        if "Failed to log in" in str(e) and retry_count < max_retries:
+                            console.print(f"[yellow]Login failed (attempt {retry_count + 1}/{max_retries + 1}). Retrying...[/yellow]")
+                            retry_count += 1
+                            await self.auth.close()
+                            await asyncio.sleep(5)
+                            continue
+                        else:
+                            raise
                     
-                    # Save to database
-                    added = self.repository.add_jobs_batch(jobs)
-                    total_found += len(jobs)
-                    total_added += len(added)
-                    
-                    console.print(
-                        f"[green]Keyword '{keyword}': Found {len(jobs)} jobs, "
-                        f"{len(added)} new jobs added to database[/green]"
-                    )
-                    
-                    if len(jobs) == 0:
-                        console.print(f"[yellow]Warning: No jobs found for '{keyword}'. "
-                                    f"Try adjusting search parameters.[/yellow]")
-                    
-                    # Optionally get detailed info for new jobs
-                    if get_details and added:
-                        console.print("[cyan]Getting job details...[/cyan]")
-                        for job in added[:5]:  # Limit to first 5 to avoid rate limiting
-                            details = await self.get_job_details(job.job_url)
-                            # Update job with details (would need repo method)
-                            await asyncio.sleep(1)
-                    
-                    all_jobs.extend(jobs)
-                    
-                    # Delay between keywords
-                    await asyncio.sleep(3)
-                    
-            finally:
-                await self.auth.close()
+                    try:
+                        for keyword in keywords:
+                            console.print(f"\n[bold cyan]Searching for: '{keyword}'[/bold cyan]")
+                            console.print(f"[dim]Pages: {max_pages_per_keyword}, Easy Apply Only: {easy_apply_only}[/dim]")
+                            
+                            jobs = await self.search_jobs(
+                                keywords=keyword,
+                                max_pages=max_pages_per_keyword,
+                                easy_apply_only=easy_apply_only
+                            )
+                            
+                            # Save to database
+                            added = self.repository.add_jobs_batch(jobs)
+                            total_found += len(jobs)
+                            total_added += len(added)
+                            
+                            console.print(
+                                f"[green]Keyword '{keyword}': Found {len(jobs)} jobs, "
+                                f"{len(added)} new jobs added to database[/green]"
+                            )
+                            
+                            if len(jobs) == 0:
+                                console.print(f"[yellow]Warning: No jobs found for '{keyword}'. "
+                                            f"Try adjusting search parameters.[/yellow]")
+                            
+                            # Optionally get detailed info for new jobs
+                            if get_details and added:
+                                console.print("[cyan]Getting job details...[/cyan]")
+                                for job in added[:5]:  # Limit to first 5 to avoid rate limiting
+                                    details = await self.get_job_details(job.job_url)
+                                    # Update job with details (would need repo method)
+                                    await asyncio.sleep(1)
+                            
+                            all_jobs.extend(jobs)
+                            
+                            # Delay between keywords
+                            await asyncio.sleep(3)
+                        
+                        # If we got here, success - break the retry loop
+                        break
+                        
+                    finally:
+                        await self.auth.close()
+                        
+            except Exception as e:
+                if retry_count < max_retries:
+                    console.print(f"[yellow]Error during scraping (attempt {retry_count + 1}/{max_retries + 1}): {e}[/yellow]")
+                    console.print("[yellow]Retrying in 10 seconds...[/yellow]")
+                    retry_count += 1
+                    await asyncio.sleep(10)
+                else:
+                    console.print(f"[red]Failed after {max_retries + 1} attempts: {e}[/red]")
+                    raise
         
         # Print summary
         stats = self.repository.get_application_stats()

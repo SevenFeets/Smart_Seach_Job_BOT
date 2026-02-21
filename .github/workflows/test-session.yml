@@ -1,0 +1,112 @@
+name: Test LinkedIn Session
+
+on:
+  workflow_dispatch:
+    inputs:
+      verbose:
+        description: 'Verbose output'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  test-session:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+          playwright install-deps chromium
+      
+      - name: Create data directory
+        run: mkdir -p data browser_data resumes
+      
+      - name: Download session artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linkedin-session
+          path: browser_data/
+        continue-on-error: true
+        id: download-session
+      
+      - name: Load session from secret (if no artifact)
+        env:
+          SESSION_JSON: ${{ secrets.LINKEDIN_SESSION_JSON }}
+        run: |
+          if [ -f "browser_data/linkedin_session.json" ]; then
+            echo "✓ Session loaded from artifact"
+            ls -lh browser_data/linkedin_session.json
+          elif [ -n "$SESSION_JSON" ]; then
+            printf '%s' "$SESSION_JSON" > browser_data/linkedin_session.json
+            echo "✓ Session loaded from secret"
+            ls -lh browser_data/linkedin_session.json
+          else
+            echo "::error::No session found!"
+            exit 1
+          fi
+      
+      - name: Validate session file
+        run: |
+          echo "Session file contents (first 100 chars):"
+          head -c 100 browser_data/linkedin_session.json
+          echo ""
+          echo "Session file size: $(stat -c%s browser_data/linkedin_session.json) bytes"
+          
+          # Check if valid JSON
+          if python -c "import json; json.load(open('browser_data/linkedin_session.json'))"; then
+            echo "✓ Session file is valid JSON"
+          else
+            echo "::error::Session file is not valid JSON!"
+            exit 1
+          fi
+          
+          # Check for cookies
+          COOKIE_COUNT=$(python -c "import json; print(len(json.load(open('browser_data/linkedin_session.json')).get('cookies', [])))")
+          echo "Cookie count: $COOKIE_COUNT"
+          
+          if [ "$COOKIE_COUNT" -gt 0 ]; then
+            echo "✓ Session has cookies"
+          else
+            echo "::warning::Session has no cookies!"
+          fi
+      
+      - name: Test login with session
+        env:
+          LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+          LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
+          HEADLESS: 'true'
+        run: |
+          echo "Testing session by attempting a quick search..."
+          python main.py search --pages 1 --easy-apply || {
+            echo "::error::Session test failed!"
+            echo "The session may be expired or invalid."
+            echo "Please run the bot locally and upload a fresh session."
+            exit 1
+          }
+      
+      - name: Session test result
+        if: success()
+        run: |
+          echo "::notice::✓ Session is valid and working!"
+          echo "The bot should be able to run successfully with this session."

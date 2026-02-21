@@ -370,8 +370,26 @@ def github_action():
     try:
         asyncio.run(github_action_job())
         console.print("[bold green]✓ GitHub Action completed successfully![/bold green]")
+    except RuntimeError as e:
+        if "Failed to log in" in str(e):
+            console.print("[red]" + "="*60 + "[/red]")
+            console.print("[bold red]LOGIN FAILURE DETECTED[/bold red]")
+            console.print("[yellow]This is likely due to LinkedIn security challenges.[/yellow]")
+            console.print("[yellow]The session may have expired or been invalidated.[/yellow]")
+            console.print("\n[cyan]To fix this:[/cyan]")
+            console.print("1. Run the bot locally: [bold]python main.py search --pages 1[/bold]")
+            console.print("2. Complete any security challenges in the browser")
+            console.print("3. Upload the new session: [bold]python scripts/upload_session_to_github.py[/bold]")
+            console.print("4. Update the LINKEDIN_SESSION_JSON secret in GitHub")
+            console.print("[red]" + "="*60 + "[/red]")
+            raise typer.Exit(1)
+        else:
+            console.print(f"[red]Error: {e}[/red]")
+            raise typer.Exit(1)
     except Exception as e:
         console.print(f"[red]Error: {e}[/red]")
+        import traceback
+        console.print(f"[dim]{traceback.format_exc()}[/dim]")
         raise typer.Exit(1)
 
 
